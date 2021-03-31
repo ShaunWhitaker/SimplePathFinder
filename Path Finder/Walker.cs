@@ -3,21 +3,48 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Path_Finder
 {
-    class Walker
+    class Walker : Cell
     {
-        public Cell currentCell { get; set; }
-        public Stack<Cell> previousCells { get; set; }
+        public Stack<Point> MoveOrder { get; set; }
 
-        public Walker()
+        public Walker(Cell[,] grid, int x, int y) : base(grid)
         {
+            MoveOrder = new Stack<Point>();
+            Coordinates = new Point
+            {
+                X = x,
+                Y = y
+            };
 
+            MoveOrder.Push(
+                        new Point
+                        {
+                            X = Coordinates.X,
+                            Y = Coordinates.Y
+                        });
+
+            grid[x, y].hasSteppedOn = true;
         }
 
-        public void Move()
+        public void Walk(Cell cellToMoveTo, bool walkingBack = false)
         {
+            this.Coordinates.Y = cellToMoveTo.Coordinates.Y;
+            this.Coordinates.X = cellToMoveTo.Coordinates.X;
+
+            cellToMoveTo.hasSteppedOn = true;
+
+            if (!walkingBack)
+            {
+                MoveOrder.Push(new Point
+                {
+                    X = Coordinates.X,
+                    Y = Coordinates.Y
+                });
+            }
 
         }
     }

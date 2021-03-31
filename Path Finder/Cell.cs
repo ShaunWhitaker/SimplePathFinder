@@ -9,84 +9,40 @@
 //------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Path_Finder
 {
-	public class Cell
-	{
-		public bool isObstical{ get; set; }
-		public int RowPosition{ get; set; }
-		public int ColumnPosition{ get; set; }
-		public bool hasSteppedOn { get; set; }
-		public List<Cell> cellNeighbors = new List<Cell>();
-		public bool isWall { get; set; }
+    public class Cell
+    {
+        public bool isObstical { get; set; }
+        public Point Coordinates { get; set; }
+        public bool hasSteppedOn { get; set; }
+        public bool IsEndPoint { get; set; }
 
-		public Cell ()
-		{
-			isWall = false;
-			isObstical = false;
-		}
+        public bool HasWalkablePath(Grid grid)
+        {
+            List<Cell> neighbourCells = new List<Cell>
+                {
+                    grid.GetCell(Coordinates.X, Coordinates.Y + 1),
+                    grid.GetCell(Coordinates.X, Coordinates.Y - 1),
+                    grid.GetCell(Coordinates.X - 1, Coordinates.Y),
+                    grid.GetCell(Coordinates.X + 1, Coordinates.Y)
+                };
 
-		public Cell Clone()
-		{
-			Cell cell = new Cell();
-			cell.ColumnPosition = this.ColumnPosition;
-			cell.RowPosition = this.RowPosition;
-			cell.isObstical = this.isObstical;
-			cell.hasSteppedOn = this.hasSteppedOn;
-			cell.cellNeighbors = this.cellNeighbors;
-			cell.isWall = this.isWall;
-			return cell;
-		}
+            if (neighbourCells.Where(x => !x.hasSteppedOn && !x.isObstical).Any())
+            {
+                return true;
+            }
+            return false;
+        }
 
-		public void SetNeighbors(Grid grid)
-		{
-			cellNeighbors.Clear();
-			//1 = top
-			//2 = bottom
-			//3 = left
-			//4 = right
-
-			for (int i = 0; i < 4; i++)
-			{
-				try
-				{
-					if (i == 0)
-					{
-						Cell cellNeigh = grid[RowPosition - 1, ColumnPosition];
-						cellNeighbors.Add(cellNeigh);
-					}
-					else if (i == 1)
-					{
-						Cell cellNeigh = grid[RowPosition + 1, ColumnPosition];
-						cellNeighbors.Add(cellNeigh);
-					}
-					else if (i == 2)
-					{
-						Cell cellNeigh = grid[RowPosition, ColumnPosition - 1];
-						cellNeighbors.Add(cellNeigh);
-					}
-					else if (i == 3)
-					{
-						Cell cellNeigh = grid[RowPosition, ColumnPosition + 1];
-						cellNeighbors.Add(cellNeigh);
-					}
-				}
-				catch (Exception)
-				{
-					Cell cellWall = new Cell();
-					cellWall.isWall = true;
-					cellNeighbors.Add(cellWall);
-				}
-
-			}
-		}
-
-		//public void SetNeighbors()
-		//{
-		//	cellNeighbors = new Cell[3,3];
-		//}
-
-	}
+    public Cell(Cell[,] _grid)
+    {
+        //grid = _grid;
+        //Height = grid.GetLength(0);
+        //Width = grid.GetLength(1);
+    }
+}
 }
 

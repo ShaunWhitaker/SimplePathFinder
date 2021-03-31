@@ -33,6 +33,7 @@
             this.btnStart = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.lblInstructions = new System.Windows.Forms.Label();
+            this.btnReset = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.grvGrid)).BeginInit();
             this.SuspendLayout();
             // 
@@ -54,6 +55,8 @@
             this.grvGrid.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.grvGrid_CellContentClick);
             this.grvGrid.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.grvGrid_CellContentClick);
             this.grvGrid.CellMouseDown += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.grvGrid_CellMouseDown);
+            this.grvGrid.CellMouseEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.grvGrid_CellMouseEnter);
+            this.grvGrid.CellMouseUp += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.grvGrid_CellMouseUp);
             this.grvGrid.SelectionChanged += new System.EventHandler(this.grvGrid_SelectionChanged);
             // 
             // btnStart
@@ -79,13 +82,25 @@
             this.lblInstructions.Size = new System.Drawing.Size(0, 13);
             this.lblInstructions.TabIndex = 2;
             // 
+            // btnReset
+            // 
+            this.btnReset.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.btnReset.Location = new System.Drawing.Point(581, 13);
+            this.btnReset.Name = "btnReset";
+            this.btnReset.Size = new System.Drawing.Size(75, 23);
+            this.btnReset.TabIndex = 3;
+            this.btnReset.Text = "Reset";
+            this.btnReset.UseVisualStyleBackColor = true;
+            this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(439, 416);
+            this.ClientSize = new System.Drawing.Size(668, 424);
+            this.Controls.Add(this.btnReset);
             this.Controls.Add(this.lblInstructions);
             this.Controls.Add(this.btnStart);
             this.Controls.Add(this.grvGrid);
@@ -103,6 +118,7 @@
         private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Label lblInstructions;
+        private System.Windows.Forms.Button btnReset;
     }
 }
 

@@ -15,6 +15,7 @@ namespace Path_Finder
 	{
 		public int Height { get; set;}
 		public int Width { get; set; }
+
 		public Cell[,] grid;
 
 		public Grid ()
@@ -26,6 +27,23 @@ namespace Path_Finder
 		{
 			get { return grid[x, y]; }
 		}
+        public Cell GetCell(int x, int y)
+        {
+            if (x < 0)
+                x = Width - 1;
+
+            if (x > Width - 1)
+                x = 0;
+
+            if (y < 0)
+                y = Height - 1;
+
+            if (y > Height - 1)
+                y = 0;
+
+            return grid[x, y];
+        }
+
 
 		public void NewGrid(int height, int width)
 		{
@@ -37,10 +55,13 @@ namespace Path_Finder
             {
                 for (int x = 0; x < width; x++)
                 {
-                    Cell cell = new Cell()
+                    Cell cell = new Cell(grid)
                     {
-                        RowPosition = i,
-                        ColumnPosition = x
+                        Coordinates = new Point
+                        {
+                            X = i,
+                            Y = x
+                        }
                     };
                     grid[i, x] = cell;
                 }
@@ -51,7 +72,7 @@ namespace Path_Finder
 		{
             try
             {
-                grid[cell.RowPosition, cell.ColumnPosition] = cell;
+                grid[cell.Coordinates.X, cell.Coordinates.Y] = cell;
             }
             catch (Exception)
             {
@@ -66,7 +87,7 @@ namespace Path_Finder
 
             for (int column = 0; column < Width; column++)
             {
-                DataColumn col = dt.Columns.Add("Col" + column);
+                dt.Columns.Add("Col" + column);
             }
 
             for (int row = 0; row < Height - 1; row++)
