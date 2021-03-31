@@ -30,7 +30,7 @@ namespace Path_Finder
             grid[x, y].hasSteppedOn = true;
         }
 
-        public void Walk(Grid grid, Cell cellToMoveTo, bool walkingBack = false)
+        public void Walk(Grid grid, Cell cellToMoveTo, bool walkingBack = false, bool FoundThing = false)
         {
             this.Coordinates.Y = cellToMoveTo.Coordinates.Y;
             this.Coordinates.X = cellToMoveTo.Coordinates.X;
@@ -45,7 +45,7 @@ namespace Path_Finder
                     Y = Coordinates.Y
                 });
             }
-            else if (cellToMoveTo.HasWalkablePath(grid))
+            else if (cellToMoveTo.HasWalkablePath(grid) && !FoundThing)
             {
                 MoveOrder.Push(new Point
                 {

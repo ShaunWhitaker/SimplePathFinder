@@ -22,6 +22,9 @@ namespace Path_Finder
         Cell cellToMoveTo;
         private bool HoldingMouseClick = false;
         Random rnd = new Random();
+        private bool FoundThing = false;
+        private DataGridViewTextBoxCell StartPoint;
+        private DataGridViewTextBoxCell EndPoint;
 
         public Form1()
         {
@@ -30,6 +33,8 @@ namespace Path_Finder
             cellToMoveTo = new Cell(grid.grid);
             timer1.Enabled = false;
             lblInstructions.Text = "Select a starting point";
+            grvGrid.DefaultCellStyle.Font = new Font("Arial", 15, FontStyle.Bold);
+            grvGrid.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
         }
 
         protected void BuildGrid()
@@ -41,16 +46,17 @@ namespace Path_Finder
             grvGrid.AutoSize = true;
             grvGrid.BackgroundColor = System.Drawing.SystemColors.Control;
             grvGrid.BorderStyle = BorderStyle.None;
+            grvGrid.AllowUserToResizeColumns = false;
             grvGrid.RowTemplate.Height = 45;
             grvGrid.RowTemplate.MinimumHeight = 45;
             grvGrid.Columns.Cast<DataGridViewColumn>().ToList().ForEach(x => x.Width = 45);
-
         }
 
         private void grvGrid_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
         {
             HoldingMouseClick = true;
             DataGridViewTextBoxCell cell = (DataGridViewTextBoxCell)grvGrid.Rows[e.RowIndex].Cells[e.ColumnIndex];
+
             //Clear the cell if it's a right click
             if (e.Button == MouseButtons.Right)
             {
@@ -65,18 +71,33 @@ namespace Path_Finder
 
                 grid.SetCell(clearCell);
                 cell.Style.BackColor = Color.White;
+                cell.Value = "";
+
+                if (cell == StartPoint)
+                {
+                    selectedStartingPoint = false;
+                    btnStart.Enabled = false;
+                }
+                else if (cell == EndPoint)
+                {
+                    selectedEndPoint = false;
+                    btnStart.Enabled = false;
+                }
             }
-            //else set obsticle/starting point
             else
             {
                 if (!selectedStartingPoint)
                 {
                     cell.Style.BackColor = Color.Red;
                     selectedStartingPoint = true;
+                    cell.Value = "S";
 
                     walker = new Walker(grid.grid, e.ColumnIndex, e.RowIndex);
 
                     lblInstructions.Text = "Select an end point.";
+
+                    StartPoint = cell;
+
                 }
                 else if (!selectedEndPoint)
                 {
@@ -84,6 +105,7 @@ namespace Path_Finder
                     selectedEndPoint = true;
                     grid[e.ColumnIndex, e.RowIndex].IsEndPoint = true;
                     lblInstructions.Text = "build a maze and select start when ready.";
+                    EndPoint = cell;
                 }
                 else
                 {
@@ -102,15 +124,28 @@ namespace Path_Finder
                 }
             }
 
-        }
+            if (selectedEndPoint && selectedEndPoint)
+            {
+                btnStart.Enabled = true;
+            }
 
+        }
 
         protected void ChangeBlockColour(Color colour, int x, int y)
         {
             DataGridViewTextBoxCell cell = (DataGridViewTextBoxCell)grvGrid.Rows[y].Cells[x];
+            if (colour == Color.Green)
+            {
+                if (FoundThing)
+                    cell.Value = "";
+            }
+            else if (colour == Color.Red && FoundThing)
+            {
+                cell.Value = "█";
+                cell.Style.ForeColor = Color.Blue;
+            }
             cell.Style.BackColor = colour;
         }
-
         private void grvGrid_SelectionChanged(object sender, EventArgs e)
         {
             grvGrid.ClearSelection();
@@ -124,20 +159,25 @@ namespace Path_Finder
 
         private void Move()
         {
-            if (!walker.HasWalkablePath(grid))
+            if (!walker.HasWalkablePath(grid) || FoundThing)
             {
-                ChangeBlockColour(Color.Green, walker.Coordinates.X, walker.Coordinates.Y);
                 if (walker.MoveOrder.Any())
                 {
+                    ChangeBlockColour(Color.Green, walker.Coordinates.X, walker.Coordinates.Y);
                     var previousPoint = walker.MoveOrder.Pop();
                     cellToMoveTo = grid.GetCell(previousPoint.X, previousPoint.Y);
-                    walker.Walk(grid, cellToMoveTo, true);
+                    walker.Walk(grid, cellToMoveTo, true, FoundThing);
                     ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
                 }
                 else
                 {
                     timer1.Enabled = false;
-                    MessageBox.Show("I could not find it!");
+                    if (FoundThing)
+                    {
+                        MessageBox.Show("Here you go!");
+                    }
+                    else
+                        MessageBox.Show("I could not find it!");
                 }
             }
             else
@@ -160,12 +200,13 @@ namespace Path_Finder
                         ChangeBlockColour(Color.Green, walker.Coordinates.X, walker.Coordinates.Y);
                         walker.Walk(grid, cellToMoveTo);
                         pathWalked.Push(grid[walker.Coordinates.X, walker.Coordinates.Y]);
-                        ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
                         if (cellToMoveTo.IsEndPoint)
                         {
-                            timer1.Enabled = false;
-                            MessageBox.Show("I found it!");
+                            var walkerCell = grvGrid[walker.Coordinates.X, walker.Coordinates.Y];
+                            FoundThing = true;
                         }
+                        ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
+
                         moved = true;
                     }
                 }
@@ -215,5 +256,6 @@ namespace Path_Finder
         {
             HoldingMouseClick = false;
         }
+
     }
 }
