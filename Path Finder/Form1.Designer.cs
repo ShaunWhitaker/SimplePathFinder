@@ -1,4 +1,6 @@
-﻿namespace Path_Finder
+﻿using System.Drawing;
+
+namespace Path_Finder
 {
     partial class Form1
     {
@@ -78,10 +80,11 @@
             // lblInstructions
             // 
             this.lblInstructions.AutoSize = true;
-            this.lblInstructions.Location = new System.Drawing.Point(124, 18);
+            this.lblInstructions.Location = new System.Drawing.Point(150, 16);
             this.lblInstructions.Name = "lblInstructions";
             this.lblInstructions.Size = new System.Drawing.Size(0, 13);
             this.lblInstructions.TabIndex = 2;
+            this.lblInstructions.Font = new Font("Arial", 12, FontStyle.Bold);
             // 
             // btnReset
             // 
