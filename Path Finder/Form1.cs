@@ -127,33 +127,46 @@ namespace Path_Finder
             if (!walker.HasWalkablePath(grid))
             {
                 ChangeBlockColour(Color.Green, walker.Coordinates.X, walker.Coordinates.Y);
-                var previousPoint = walker.MoveOrder.Pop();
-                cellToMoveTo = grid.GetCell(previousPoint.X, previousPoint.Y); 
-                walker.Walk(cellToMoveTo, true);
-                ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
+                if (walker.MoveOrder.Any())
+                {
+                    var previousPoint = walker.MoveOrder.Pop();
+                    cellToMoveTo = grid.GetCell(previousPoint.X, previousPoint.Y);
+                    walker.Walk(grid, cellToMoveTo, true);
+                    ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
+                }
+                else
+                {
+                    timer1.Enabled = false;
+                    MessageBox.Show("I could not find it!");
+                }
             }
             else
             {
-
-                char direction = rnd.Next(0, 2) == 1 ? 'X' : 'Y';
-                int move = (rnd.Next(0, 2) * 2 - 1);
-
-                //TODO: Filter out non walkable paths and random the remaning.
-                if (direction == 'X')
-                    cellToMoveTo = grid.GetCell(walker.Coordinates.X + move, walker.Coordinates.Y);
-                else
-                    cellToMoveTo = grid.GetCell(walker.Coordinates.X, walker.Coordinates.Y + move);
-
-                if (!cellToMoveTo.isObstical && !cellToMoveTo.hasSteppedOn)
+                //TODO: Make a bit more efficient.
+                var moved = false;
+                while (!moved)
                 {
-                    ChangeBlockColour(Color.Green, walker.Coordinates.X, walker.Coordinates.Y);
-                    walker.Walk(cellToMoveTo);
-                    pathWalked.Push(grid[walker.Coordinates.X, walker.Coordinates.Y]);
-                    ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
-                    if (cellToMoveTo.IsEndPoint)
+                    char direction = rnd.Next(0, 2) == 1 ? 'X' : 'Y';
+                    int move = (rnd.Next(0, 2) * 2 - 1);
+
+                    if (direction == 'X')
+                        cellToMoveTo = grid.GetCell(walker.Coordinates.X + move, walker.Coordinates.Y);
+
+                    else
+                        cellToMoveTo = grid.GetCell(walker.Coordinates.X, walker.Coordinates.Y + move);
+
+                    if (!cellToMoveTo.isObstical && !cellToMoveTo.hasSteppedOn)
                     {
-                        timer1.Enabled = false;
-                        MessageBox.Show("Done!");
+                        ChangeBlockColour(Color.Green, walker.Coordinates.X, walker.Coordinates.Y);
+                        walker.Walk(grid, cellToMoveTo);
+                        pathWalked.Push(grid[walker.Coordinates.X, walker.Coordinates.Y]);
+                        ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
+                        if (cellToMoveTo.IsEndPoint)
+                        {
+                            timer1.Enabled = false;
+                            MessageBox.Show("I found it!");
+                        }
+                        moved = true;
                     }
                 }
             }
@@ -194,7 +207,7 @@ namespace Path_Finder
                 };
 
                 grid.SetCell(obstical);
-                
+
             }
         }
 
