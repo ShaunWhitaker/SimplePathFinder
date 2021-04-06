@@ -25,31 +25,16 @@ namespace Path_Finder
         private bool FoundThing = false;
         private DataGridViewTextBoxCell StartPoint;
         private DataGridViewTextBoxCell EndPoint;
+        bool WalkerHasThingInSight = false;
+        object CurrentSender;
+
+        DataTable DT = new DataTable();
+
 
         public Form1()
         {
             InitializeComponent();
             BuildGrid();
-            cellToMoveTo = new Cell(grid.grid);
-            timer1.Enabled = false;
-            lblInstructions.Text = "Select a starting point";
-            grvGrid.DefaultCellStyle.Font = new Font("Arial", 15, FontStyle.Bold);
-            grvGrid.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-        }
-
-        protected void BuildGrid()
-        {
-            grid = new Grid();
-            grid.NewGrid(15, 15);
-            DataTable gridDT = grid.GridAsDataTable();
-            grvGrid.DataSource = gridDT;
-            grvGrid.AutoSize = true;
-            grvGrid.BackgroundColor = System.Drawing.SystemColors.Control;
-            grvGrid.BorderStyle = BorderStyle.None;
-            grvGrid.AllowUserToResizeColumns = false;
-            grvGrid.RowTemplate.Height = 45;
-            grvGrid.RowTemplate.MinimumHeight = 45;
-            grvGrid.Columns.Cast<DataGridViewColumn>().ToList().ForEach(x => x.Width = 45);
         }
 
         private void grvGrid_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
@@ -110,17 +95,16 @@ namespace Path_Finder
                 else
                 {
                     cell.Style.BackColor = Color.Black;
-                    var obstical = new Cell(grid.grid)
+
+                    var gridCell = grid.GetCell(e.ColumnIndex, e.RowIndex);
+
+                    gridCell.Coordinates = new Point
                     {
-                        Coordinates = new Point
-                        {
-                            X = e.ColumnIndex,
-                            Y = e.RowIndex
-                        },
-                        isObstical = true
+                        X = e.ColumnIndex,
+                        Y = e.RowIndex
                     };
 
-                    grid.SetCell(obstical);
+                    gridCell.isObstical = true;
                 }
             }
 
@@ -211,17 +195,59 @@ namespace Path_Finder
                     }
                 }
             }
+
+            if ((walker.Coordinates.X == EndPoint.ColumnIndex || walker.Coordinates.Y == EndPoint.RowIndex) && !FoundThing)
+            {
+                bool isBlockedByObstical = false;
+                if (walker.Coordinates.X == EndPoint.ColumnIndex)
+                {
+                    int loopStartPoint = 0;
+                    int loopEndPoint = 0;
+
+                    if (walker.Coordinates.Y < EndPoint.RowIndex)
+                    {
+                        loopStartPoint = walker.Coordinates.Y;
+                        loopEndPoint = EndPoint.RowIndex;
+
+                        for (int i = loopStartPoint; i < loopEndPoint; i ++)
+                        {
+                            var cell = grid.GetCell(walker.Coordinates.X, i);
+                            if (cell.isObstical)
+                            {
+                                isBlockedByObstical = true;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        loopStartPoint = EndPoint.RowIndex;
+                        loopEndPoint = walker.Coordinates.Y;
+
+                        for (int i = loopStartPoint; i > loopEndPoint; i--)
+                        {
+                            var cell = grid.GetCell(walker.Coordinates.X, i);
+                            if (cell.isObstical)
+                            {
+                                isBlockedByObstical = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!isBlockedByObstical)
+                {
+                    WalkerHasThingInSight = true;
+                    MessageBox.Show("I see it!");
+                }
+            }
             Application.DoEvents();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             Move();
-        }
-
-        private void grvGrid_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
         }
 
         private void btnReset_Click(object sender, EventArgs e)
@@ -233,28 +259,58 @@ namespace Path_Finder
 
         private void grvGrid_CellMouseEnter(object sender, DataGridViewCellEventArgs e)
         {
-            if (HoldingMouseClick)
+            if (CurrentSender == null)
+                CurrentSender = e;
+            if (CurrentSender != e)
             {
-                DataGridViewTextBoxCell cell = (DataGridViewTextBoxCell)grvGrid.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                cell.Style.BackColor = Color.Black;
-                var obstical = new Cell(grid.grid)
+                CurrentSender = e;
+                while (HoldingMouseClick)
                 {
-                    Coordinates = new Point
+                    var cell = new DataGridViewTextBoxCell();
+                    cell.Style.BackColor = Color.Black;
+
+
+                    grvGrid.Rows[e.RowIndex].Cells[e.ColumnIndex] = cell;
+
+                    var obstical = new Cell(grid.grid)
                     {
-                        X = e.ColumnIndex,
-                        Y = e.RowIndex
-                    },
-                    isObstical = true
-                };
+                        Coordinates = new Point
+                        {
+                            X = e.ColumnIndex,
+                            Y = e.RowIndex
+                        },
+                        isObstical = true
+                    };
 
-                grid.SetCell(obstical);
-
+                    grid.SetCell(obstical);
+                    break;
+                }
             }
         }
 
         private void grvGrid_CellMouseUp(object sender, DataGridViewCellMouseEventArgs e)
         {
             HoldingMouseClick = false;
+        }
+
+        protected void BuildGrid()
+        {
+            lblInstructions.Text = "Select a starting point";
+            grid = new Grid();
+            grid.NewGrid(15, 15);
+            DT = grid.GridAsDataTable();
+            grvGrid.DataSource = DT;
+            grvGrid.AutoSize = true;
+            grvGrid.BackgroundColor = System.Drawing.SystemColors.Control;
+            grvGrid.BorderStyle = BorderStyle.None;
+            grvGrid.AllowUserToResizeColumns = false;
+            grvGrid.RowTemplate.Height = 45;
+            grvGrid.RowTemplate.MinimumHeight = 45;
+            grvGrid.Columns.Cast<DataGridViewColumn>().ToList().ForEach(x => x.Width = 45);
+            grvGrid.DefaultCellStyle.Font = new Font("Arial", 15, FontStyle.Bold);
+            grvGrid.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            cellToMoveTo = new Cell(grid.grid);
+            timer1.Enabled = false;
         }
 
     }

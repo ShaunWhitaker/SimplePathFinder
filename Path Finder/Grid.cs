@@ -9,6 +9,8 @@
 //------------------------------------------------------------------------------
 using System;
 using System.Data;
+using System.Windows.Forms;
+
 namespace Path_Finder
 {
 	public class Grid
@@ -87,7 +89,7 @@ namespace Path_Finder
 
             for (int column = 0; column < Width; column++)
             {
-                dt.Columns.Add("Col" + column);
+                dt.Columns.Add();
             }
 
             for (int row = 0; row < Height - 1; row++)

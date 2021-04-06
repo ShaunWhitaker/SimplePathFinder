@@ -54,8 +54,6 @@ namespace Path_Finder
             this.grvGrid.ScrollBars = System.Windows.Forms.ScrollBars.None;
             this.grvGrid.Size = new System.Drawing.Size(54, 44);
             this.grvGrid.TabIndex = 0;
-            this.grvGrid.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.grvGrid_CellContentClick);
-            this.grvGrid.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.grvGrid_CellContentClick);
             this.grvGrid.CellMouseDown += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.grvGrid_CellMouseDown);
             this.grvGrid.CellMouseEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.grvGrid_CellMouseEnter);
             this.grvGrid.CellMouseUp += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.grvGrid_CellMouseUp);
