@@ -29,6 +29,12 @@ namespace Path_Finder
 		{
 			get { return grid[x, y]; }
 		}
+        /// <summary>
+        /// Get the x, y of the cell. if it's negative it means it's on the edge so it needs to transition to the otherside of the grid.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public Cell GetCell(int x, int y)
         {
             if (x < 0)

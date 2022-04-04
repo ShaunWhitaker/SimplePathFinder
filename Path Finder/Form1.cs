@@ -58,6 +58,7 @@ namespace Path_Finder
                 cell.Style.BackColor = Color.White;
                 cell.Value = "";
 
+                //if the start/end point is cleared, it will be selected on next mouse down.
                 if (cell == StartPoint)
                 {
                     selectedStartingPoint = false;
@@ -71,6 +72,7 @@ namespace Path_Finder
             }
             else
             {
+                //If starting point has not been selected it should create it first.
                 if (!selectedStartingPoint)
                 {
                     cell.Style.BackColor = Color.Red;
@@ -94,6 +96,7 @@ namespace Path_Finder
                 }
                 else
                 {
+                    //Add a wall
                     cell.Style.BackColor = Color.Black;
 
                     var gridCell = grid.GetCell(e.ColumnIndex, e.RowIndex);
@@ -108,6 +111,7 @@ namespace Path_Finder
                 }
             }
 
+            //only enable the start button once both the start point and the end point have been selected.
             if (selectedEndPoint && selectedEndPoint)
             {
                 btnStart.Enabled = true;
@@ -115,6 +119,15 @@ namespace Path_Finder
 
         }
 
+        /// <summary>
+        ///Changes the block color when walker is progressing through the maze. 
+        ///Walked paths will change green.
+        ///Path where walker is on will change red.
+        ///If walker has found the end point it will be a combination of red + blue.
+        /// </summary>
+        /// <param name="colour"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
         protected void ChangeBlockColour(Color colour, int x, int y)
         {
             DataGridViewTextBoxCell cell = (DataGridViewTextBoxCell)grvGrid.Rows[y].Cells[x];
@@ -143,11 +156,14 @@ namespace Path_Finder
 
         private void Move()
         {
+            //if the walker is back tracking.
             if (!walker.HasWalkablePath(grid) || FoundThing)
             {
                 if (walker.MoveOrder.Any())
                 {
+                    //change the block color when walked on.
                     ChangeBlockColour(Color.Green, walker.Coordinates.X, walker.Coordinates.Y);
+                    //Get the previous block that the walker is on to determine where to walk next.
                     var previousPoint = walker.MoveOrder.Pop();
                     cellToMoveTo = grid.GetCell(previousPoint.X, previousPoint.Y);
                     walker.Walk(grid, cellToMoveTo, true, FoundThing);
@@ -164,13 +180,17 @@ namespace Path_Finder
                         MessageBox.Show("I could not find it!");
                 }
             }
+            //if the walker is moving forward
             else
             {
                 //TODO: Make a bit more efficient.
                 var moved = false;
                 while (!moved)
                 {
+                    //Get a random direction (up/down, left/righ)
                     char direction = rnd.Next(0, 2) == 1 ? 'X' : 'Y';
+
+                    //Get either a 1 or a - 1 to indicate which direction on the axis to move.
                     int move = (rnd.Next(0, 2) * 2 - 1);
 
                     if (direction == 'X')
@@ -179,6 +199,7 @@ namespace Path_Finder
                     else
                         cellToMoveTo = grid.GetCell(walker.Coordinates.X, walker.Coordinates.Y + move);
 
+                    //check if the cell is a wall or has been stepped on before. if either is true, try get the next walkable cell.
                     if (!cellToMoveTo.isObstical && !cellToMoveTo.hasSteppedOn)
                     {
                         ChangeBlockColour(Color.Green, walker.Coordinates.X, walker.Coordinates.Y);
@@ -195,6 +216,9 @@ namespace Path_Finder
                     }
                 }
             }
+
+            //Coding the line of site. Unfinished.
+            //This will enable the walker to walk straight to the end thing instead of going random directions.
 
             if ((walker.Coordinates.X == EndPoint.ColumnIndex || walker.Coordinates.Y == EndPoint.RowIndex) && !FoundThing)
             {
@@ -259,6 +283,7 @@ namespace Path_Finder
 
         private void grvGrid_CellMouseEnter(object sender, DataGridViewCellEventArgs e)
         {
+            //Check if the mouse is being held down so we can build a wall without clicking.
             if (CurrentSender == null)
                 CurrentSender = e;
             if (CurrentSender != e)

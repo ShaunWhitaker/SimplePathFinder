@@ -22,6 +22,7 @@ namespace Path_Finder
 
         public bool HasWalkablePath(Grid grid)
         {
+            //Get all the cells around the walker.
             List<Cell> neighbourCells = new List<Cell>
                 {
                     grid.GetCell(Coordinates.X, Coordinates.Y + 1),
@@ -30,6 +31,7 @@ namespace Path_Finder
                     grid.GetCell(Coordinates.X + 1, Coordinates.Y)
                 };
 
+            //If there is a cell that has not been stepped on & is not a wall, return true.
             if (neighbourCells.Where(x => !x.hasSteppedOn && !x.isObstical).Any())
             {
                 return true;
