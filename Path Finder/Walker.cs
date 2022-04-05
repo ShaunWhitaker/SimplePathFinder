@@ -40,7 +40,7 @@ namespace Path_Finder
             cellToMoveTo.hasSteppedOn = true;
 
             //if the walker is not moving backwards push the new cell into the move order.
-            if (!walkingBack)
+            if (!walkingBack || (cellToMoveTo.HasWalkablePath(grid) && !FoundThing))
             {
                 MoveOrder.Push(new Point
                 {
@@ -48,15 +48,7 @@ namespace Path_Finder
                     Y = Coordinates.Y
                 });
             }
-            //if it is moving backwards + it has a new walkable path, add it to the move order.
-            else if (cellToMoveTo.HasWalkablePath(grid) && !FoundThing)
-            {
-                MoveOrder.Push(new Point
-                {
-                    X = Coordinates.X,
-                    Y = Coordinates.Y
-                });
-            }
-        }
+
+         }
     }
 }

@@ -25,8 +25,9 @@ namespace Path_Finder
         private bool FoundThing = false;
         private DataGridViewTextBoxCell StartPoint;
         private DataGridViewTextBoxCell EndPoint;
-        bool WalkerHasThingInSight = false;
+        private bool WalkerHasThingInSight = false;
         object CurrentSender;
+        private Queue<Cell> LineOfSitePath = new Queue<Cell>();
 
         DataTable DT = new DataTable();
 
@@ -156,8 +157,78 @@ namespace Path_Finder
 
         private void Move()
         {
+            if ((walker.Coordinates.X == EndPoint.ColumnIndex || walker.Coordinates.Y == EndPoint.RowIndex) && !FoundThing && !LineOfSitePath.Any())
+            {
+                bool isBlockedByObstical = false;
+                int loopStartPoint = 0;
+                int loopEndPoint = 0;
+
+                if (walker.Coordinates.X == EndPoint.ColumnIndex)
+                {
+                    if (walker.Coordinates.Y < EndPoint.RowIndex)
+                    {
+                        loopStartPoint = walker.Coordinates.Y;
+                        loopEndPoint = EndPoint.RowIndex + 1;
+
+                        for (int i = loopStartPoint; i < loopEndPoint ; i++)
+                        {
+                            var cell = grid.GetCell(walker.Coordinates.X, i);
+                            if (cell.isObstical)
+                            {
+                                isBlockedByObstical = true;
+                                LineOfSitePath.Clear();
+                                break;
+                            }
+                            else
+                            {
+                                LineOfSitePath.Enqueue(cell);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        loopStartPoint = EndPoint.RowIndex;
+                        loopEndPoint = walker.Coordinates.Y;
+
+                        for (int i = loopStartPoint; i > loopEndPoint; i--)
+                        {
+                            var cell = grid.GetCell(walker.Coordinates.X, i);
+                            if (cell.isObstical)
+                            {
+                                isBlockedByObstical = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                else if (walker.Coordinates.Y == EndPoint.RowIndex)
+                {
+                   
+                }
+
+                if (!isBlockedByObstical)
+                {
+                    WalkerHasThingInSight = true;
+
+                }
+            }
+
+            //if there is a line of site path straight to the end point we use that.
+            if (LineOfSitePath.Any())
+            {
+                ChangeBlockColour(Color.Green, walker.Coordinates.X, walker.Coordinates.Y);
+                cellToMoveTo = LineOfSitePath.Dequeue();
+                walker.Walk(grid, cellToMoveTo);
+                pathWalked.Push(grid[walker.Coordinates.X, walker.Coordinates.Y]);
+                if (cellToMoveTo.IsEndPoint)
+                {
+                    FoundThing = true;
+                }
+                ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
+            }
+
             //if the walker is back tracking.
-            if (!walker.HasWalkablePath(grid) || FoundThing)
+            else if (!walker.HasWalkablePath(grid) || FoundThing)
             {
                 if (walker.MoveOrder.Any())
                 {
@@ -207,7 +278,6 @@ namespace Path_Finder
                         pathWalked.Push(grid[walker.Coordinates.X, walker.Coordinates.Y]);
                         if (cellToMoveTo.IsEndPoint)
                         {
-                            var walkerCell = grvGrid[walker.Coordinates.X, walker.Coordinates.Y];
                             FoundThing = true;
                         }
                         ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
@@ -220,52 +290,7 @@ namespace Path_Finder
             //Coding the line of site. Unfinished.
             //This will enable the walker to walk straight to the end thing instead of going random directions.
 
-            if ((walker.Coordinates.X == EndPoint.ColumnIndex || walker.Coordinates.Y == EndPoint.RowIndex) && !FoundThing)
-            {
-                bool isBlockedByObstical = false;
-                if (walker.Coordinates.X == EndPoint.ColumnIndex)
-                {
-                    int loopStartPoint = 0;
-                    int loopEndPoint = 0;
-
-                    if (walker.Coordinates.Y < EndPoint.RowIndex)
-                    {
-                        loopStartPoint = walker.Coordinates.Y;
-                        loopEndPoint = EndPoint.RowIndex;
-
-                        for (int i = loopStartPoint; i < loopEndPoint; i ++)
-                        {
-                            var cell = grid.GetCell(walker.Coordinates.X, i);
-                            if (cell.isObstical)
-                            {
-                                isBlockedByObstical = true;
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        loopStartPoint = EndPoint.RowIndex;
-                        loopEndPoint = walker.Coordinates.Y;
-
-                        for (int i = loopStartPoint; i > loopEndPoint; i--)
-                        {
-                            var cell = grid.GetCell(walker.Coordinates.X, i);
-                            if (cell.isObstical)
-                            {
-                                isBlockedByObstical = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (!isBlockedByObstical)
-                {
-                    WalkerHasThingInSight = true;
-                    MessageBox.Show("I see it!");
-                }
-            }
+           
             Application.DoEvents();
         }
 
