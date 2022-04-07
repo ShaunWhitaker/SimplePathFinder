@@ -16,10 +16,10 @@ namespace Path_Finder
     {
         private bool selectedStartingPoint;
         private bool selectedEndPoint;
-        private Grid grid;
-        private Stack<Cell> pathWalked = new Stack<Cell>();
+        public Grid grid;
+        public Stack<Cell> pathWalked = new Stack<Cell>();
         private Walker walker;
-        Cell cellToMoveTo;
+        public Cell cellToMoveTo;
         private bool HoldingMouseClick = false;
         Random rnd = new Random();
         private bool FoundThing = false;
@@ -154,63 +154,67 @@ namespace Path_Finder
             timer1.Enabled = true;
         }
 
-        private void CheckIfPathIsBlockedByObstical(Point walkerPoint, Point endpoint, char axis)
+        private void CheckIfPathIsBlockedByObstical(char axis)
         {
             //This is not very effecient.
             //first check which direction is the fastest path to the endpoint 
+
             Queue<Cell> path1 = new Queue<Cell>();
             Queue<Cell> path2 = new Queue<Cell>();
 
-            var tempCell = grid.GetCell(walkerPoint.X, walkerPoint.Y);
+            var tempWalkerCell = grid.GetCell(walker.Coordinates.X, walker.Coordinates.Y);
 
-            while (!tempCell.IsEndPoint)
+            //check down & right
+            while (!tempWalkerCell.IsEndPoint)
             {
-                if (tempCell.isObstical)
+                if (tempWalkerCell.isObstical)
                 {
                     path1 = null;
                     break;
                 }
-                path1.Enqueue(tempCell);
+                path1.Enqueue(tempWalkerCell);
                 if (axis == 'Y')
                 {
-                    tempCell = grid.GetCell(walkerPoint.X, tempCell.Coordinates.Y + 1);
+                    tempWalkerCell = grid.GetCell(walker.Coordinates.X, tempWalkerCell.Coordinates.Y + 1);
                 }
                 else
                 {
-                    tempCell = grid.GetCell(tempCell.Coordinates.X + 1, walkerPoint.Y);
+                    tempWalkerCell = grid.GetCell(tempWalkerCell.Coordinates.X + 1, tempWalkerCell.Coordinates.Y);
                 }
 
             }
 
-            if (tempCell.IsEndPoint)
+            if (tempWalkerCell.IsEndPoint)
             {
-                path1.Enqueue(tempCell);
+                path1.Enqueue(tempWalkerCell);
             }
 
-            tempCell = grid.GetCell(walkerPoint.X, walkerPoint.Y);
-            while (!tempCell.IsEndPoint)
+            //Check up & left
+            tempWalkerCell = grid.GetCell(walker.Coordinates.X, walker.Coordinates.Y);
+            while (!tempWalkerCell.IsEndPoint)
             {
-                if (tempCell.isObstical)
+                if (tempWalkerCell.isObstical)
                 {
                     path2 = null;
                     break;
                 }
-                path2.Enqueue(tempCell);
+                path2.Enqueue(tempWalkerCell);
                 if (axis == 'Y')
                 {
-                    tempCell = grid.GetCell(walkerPoint.X, tempCell.Coordinates.Y - 1);
+                    tempWalkerCell = grid.GetCell(walker.Coordinates.X, tempWalkerCell.Coordinates.Y - 1);
                 }
                 else
                 {
-                    tempCell = grid.GetCell(tempCell.Coordinates.X - 1, walkerPoint.Y);
+                    tempWalkerCell = grid.GetCell(tempWalkerCell.Coordinates.X - 1, walker.Coordinates.Y);
                 }
             }
 
-            if (tempCell.IsEndPoint)
+            if (tempWalkerCell.IsEndPoint)
             {
-                path2.Enqueue(tempCell);
+                path2.Enqueue(tempWalkerCell);
             }
 
+            //If neither of the paths are null then there are 2 possible LOS paths to the end point. Get the shortest one.
             if (path1 != null && path2 != null)
             {
                 LineOfSitePath = path1.Count < path2.Count ? path1 : path2;
@@ -233,43 +237,23 @@ namespace Path_Finder
             //if it is on the same axis check if it is not blocked by an obstical (it can see it) and if it isn't, run straight to it.
             if ((walker.Coordinates.X == EndPoint.ColumnIndex || walker.Coordinates.Y == EndPoint.RowIndex) && !FoundThing && !LineOfSitePath.Any())
             {
-                bool isBlockedByObstical = false;
-                var loopStartPoint = new Point
-                {
-                    X = walker.Coordinates.X,
-                    Y = walker.Coordinates.Y
-                };
-
-                var loopEndPoint = new Point
-                {
-                    X = EndPoint.RowIndex,
-                    Y = EndPoint.ColumnIndex
-                };
-
                 if (walker.Coordinates.X == EndPoint.ColumnIndex)
                 {
-                    CheckIfPathIsBlockedByObstical(loopStartPoint, loopEndPoint, 'Y');
+                    CheckIfPathIsBlockedByObstical('Y');
 
                 }
                 else if (walker.Coordinates.Y == EndPoint.RowIndex)
                 {
-                    CheckIfPathIsBlockedByObstical(loopStartPoint, loopEndPoint, 'X');
-                }
-
-                if (!isBlockedByObstical)
-                {
-                    WalkerHasThingInSight = true;
-
+                    CheckIfPathIsBlockedByObstical('X');
                 }
             }
 
             //if there is a line of site path straight to the end point we use that.
-            if (LineOfSitePath.Any())
+            if (LineOfSitePath.Any() && !FoundThing)
             {
                 ChangeBlockColour(Color.Green, walker.Coordinates.X, walker.Coordinates.Y);
                 cellToMoveTo = LineOfSitePath.Dequeue();
-                walker.Walk(grid, cellToMoveTo);
-                pathWalked.Push(grid[walker.Coordinates.X, walker.Coordinates.Y]);
+                walker.Walk(this);
                 if (cellToMoveTo.IsEndPoint)
                 {
                     FoundThing = true;
@@ -287,7 +271,7 @@ namespace Path_Finder
                     //Get the previous block that the walker is on to determine where to walk next.
                     var previousPoint = walker.MoveOrder.Pop();
                     cellToMoveTo = grid.GetCell(previousPoint.X, previousPoint.Y);
-                    walker.Walk(grid, cellToMoveTo, true, FoundThing);
+                    walker.Walk(this, true, FoundThing);
                     ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
                 }
                 else
@@ -324,12 +308,11 @@ namespace Path_Finder
                     if (!cellToMoveTo.isObstical && !cellToMoveTo.hasSteppedOn)
                     {
                         ChangeBlockColour(Color.Green, walker.Coordinates.X, walker.Coordinates.Y);
-                        walker.Walk(grid, cellToMoveTo);
-                        pathWalked.Push(grid[walker.Coordinates.X, walker.Coordinates.Y]);
+                        walker.Walk(this);
                         if (cellToMoveTo.IsEndPoint)
                         {
                             FoundThing = true;
-                        }
+                        }                        ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
                         ChangeBlockColour(Color.Red, walker.Coordinates.X, walker.Coordinates.Y);
 
                         moved = true;
