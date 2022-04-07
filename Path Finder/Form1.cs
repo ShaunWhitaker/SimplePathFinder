@@ -320,10 +320,6 @@ namespace Path_Finder
                 }
             }
 
-            //Coding the line of site. Unfinished.
-            //This will enable the walker to walk straight to the end thing instead of going random directions.
-
-
             Application.DoEvents();
         }
 
