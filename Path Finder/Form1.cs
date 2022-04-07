@@ -154,57 +154,117 @@ namespace Path_Finder
             timer1.Enabled = true;
         }
 
+        private bool CheckIfPathIsBlockedByObstical(Point walkerPoint, Point endpoint)
+        {
+            //first check which direction is the fastest path to the endpoint 
+            bool pathBlocked = false;
+            Queue<Cell> path1 = new Queue<Cell>();
+            Queue<Cell> path2 = new Queue<Cell>();
+
+            int tempWalkerPoint = walkerPoint;
+            while (tempWalkerPoint != endpoint)
+            {
+                var cell = grid.GetCell(tempWalkerPoint, endpoint);
+                if (cell.isObstical)
+                {
+                    path1.Clear();
+                    break;
+                }
+                path1.Enqueue(cell);
+                tempWalkerPoint = grid.checkYLocation(tempWalkerPoint + 1);
+            }
+
+            tempWalkerPoint = walkerPoint;
+            while (tempWalkerPoint != endpoint)
+            {
+                var cell = grid.GetCell(tempWalkerPoint, endpoint);
+                if (cell.isObstical)
+                {
+                    path2.Clear();
+                    break;
+                }
+                path2.Enqueue(cell);
+                tempWalkerPoint = grid.checkYLocation(tempWalkerPoint - 1);
+            }
+
+            if (path1.Any() || path2.Any())
+            {
+                LineOfSitePath = path1.Count() < path2.Count() ? path1 : path2;
+            }
+
+            return true;
+        }
+
 
         private void Move()
         {
             if ((walker.Coordinates.X == EndPoint.ColumnIndex || walker.Coordinates.Y == EndPoint.RowIndex) && !FoundThing && !LineOfSitePath.Any())
             {
                 bool isBlockedByObstical = false;
-                int loopStartPoint = 0;
-                int loopEndPoint = 0;
+                var loopStartPoint = new Point();
+                var loopEndPoint = new Point();
 
                 if (walker.Coordinates.X == EndPoint.ColumnIndex)
                 {
-                    if (walker.Coordinates.Y < EndPoint.RowIndex)
-                    {
-                        loopStartPoint = walker.Coordinates.Y;
-                        loopEndPoint = EndPoint.RowIndex + 1;
 
-                        for (int i = loopStartPoint; i < loopEndPoint ; i++)
-                        {
-                            var cell = grid.GetCell(walker.Coordinates.X, i);
-                            if (cell.isObstical)
-                            {
-                                isBlockedByObstical = true;
-                                LineOfSitePath.Clear();
-                                break;
-                            }
-                            else
-                            {
-                                LineOfSitePath.Enqueue(cell);
-                            }
-                        }
-                    }
-                    else
+                    loopStartPoint = new Point
                     {
-                        loopStartPoint = EndPoint.RowIndex;
-                        loopEndPoint = walker.Coordinates.Y;
+                        X = walker.Coordinates.X,
+                        Y = walker.Coordinates.Y
+                    };
 
-                        for (int i = loopStartPoint; i > loopEndPoint; i--)
-                        {
-                            var cell = grid.GetCell(walker.Coordinates.X, i);
-                            if (cell.isObstical)
-                            {
-                                isBlockedByObstical = true;
-                                break;
-                            }
-                        }
-                    }
+                    loopEndPoint = new Point
+                    {
+                        X = EndPoint.RowIndex,
+                        Y = EndPoint.ColumnIndex
+                    };
+
+                    CheckIfPathIsBlockedByObstical(loopStartPoint, loopEndPoint);
+
+                    //if (walker.Coordinates.Y < EndPoint.RowIndex)
+                    //{
+                    //    loopStartPoint = walker.Coordinates.Y;
+                    //    loopEndPoint = EndPoint.RowIndex + 1;
+
+                    //    for (int i = loopStartPoint; i < loopEndPoint ; i++)
+                    //    {
+                    //        var cell = grid.GetCell(walker.Coordinates.X, i);
+                    //        if (cell.isObstical)
+                    //        {
+                    //            isBlockedByObstical = true;
+                    //            LineOfSitePath.Clear();
+                    //            break;
+                    //        }
+                    //        else
+                    //        {
+                    //            LineOfSitePath.Enqueue(cell);
+                    //        }
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    loopStartPoint = EndPoint.RowIndex;
+                    //    loopEndPoint = walker.Coordinates.Y;
+
+                    //    for (int i = loopStartPoint; i > loopEndPoint; i--)
+                    //    {
+                    //        var cell = grid.GetCell(walker.Coordinates.X, i);
+                    //        if (cell.isObstical)
+                    //        {
+                    //            isBlockedByObstical = true;
+                    //            break;
+                    //        }
+                    //    }
+                    //}
                 }
-                else if (walker.Coordinates.Y == EndPoint.RowIndex)
-                {
-                   
-                }
+                //else if (walker.Coordinates.Y == EndPoint.RowIndex)
+                //{
+                //    loopStartPoint = walker.Coordinates.X;
+                //    loopEndPoint = EndPoint.ColumnIndex + 1;
+
+                //    //CheckIfPathIsBlockedByObstical(loopStartPoint, loopEndPoint);
+
+                //}
 
                 if (!isBlockedByObstical)
                 {
@@ -290,7 +350,7 @@ namespace Path_Finder
             //Coding the line of site. Unfinished.
             //This will enable the walker to walk straight to the end thing instead of going random directions.
 
-           
+
             Application.DoEvents();
         }
 

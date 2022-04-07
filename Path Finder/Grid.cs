@@ -35,25 +35,37 @@ namespace Path_Finder
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns></returns>
+        /// 
         public Cell GetCell(int x, int y)
         {
-            if (x < 0)
-                x = Width - 1;
-
-            if (x > Width - 1)
-                x = 0;
-
-            if (y < 0)
-                y = Height - 1;
-
-            if (y > Height - 1)
-                y = 0;
-
+            x = checkXLocation(x);
+            y= checkYLocation(y);
             return grid[x, y];
         }
 
+        public int checkXLocation(int x)
+        {
+            if (x < 0)
+                return Width - 1;
 
-		public void NewGrid(int height, int width)
+            if (x > Width - 1)
+                return 0;
+
+            return x;
+        }
+
+        public int checkYLocation(int y)
+        {
+            if (y < 0)
+                return Height - 1;
+
+            if (y > Height - 1)
+                return 0;
+
+            return y;
+        }
+
+        public void NewGrid(int height, int width)
 		{
 
             Height = height;
