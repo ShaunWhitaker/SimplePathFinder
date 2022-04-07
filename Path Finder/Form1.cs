@@ -154,117 +154,107 @@ namespace Path_Finder
             timer1.Enabled = true;
         }
 
-        private bool CheckIfPathIsBlockedByObstical(Point walkerPoint, Point endpoint)
+        private void CheckIfPathIsBlockedByObstical(Point walkerPoint, Point endpoint, char axis)
         {
+            //This is not very effecient.
             //first check which direction is the fastest path to the endpoint 
-            bool pathBlocked = false;
             Queue<Cell> path1 = new Queue<Cell>();
             Queue<Cell> path2 = new Queue<Cell>();
 
-            int tempWalkerPoint = walkerPoint;
-            while (tempWalkerPoint != endpoint)
+            var tempCell = grid.GetCell(walkerPoint.X, walkerPoint.Y);
+
+            while (!tempCell.IsEndPoint)
             {
-                var cell = grid.GetCell(tempWalkerPoint, endpoint);
-                if (cell.isObstical)
+                if (tempCell.isObstical)
                 {
-                    path1.Clear();
+                    path1 = null;
                     break;
                 }
-                path1.Enqueue(cell);
-                tempWalkerPoint = grid.checkYLocation(tempWalkerPoint + 1);
+                path1.Enqueue(tempCell);
+                if (axis == 'Y')
+                {
+                    tempCell = grid.GetCell(walkerPoint.X, tempCell.Coordinates.Y + 1);
+                }
+                else
+                {
+                    tempCell = grid.GetCell(tempCell.Coordinates.X + 1, walkerPoint.Y);
+                }
+
             }
 
-            tempWalkerPoint = walkerPoint;
-            while (tempWalkerPoint != endpoint)
+            if (tempCell.IsEndPoint)
             {
-                var cell = grid.GetCell(tempWalkerPoint, endpoint);
-                if (cell.isObstical)
+                path1.Enqueue(tempCell);
+            }
+
+            tempCell = grid.GetCell(walkerPoint.X, walkerPoint.Y);
+            while (!tempCell.IsEndPoint)
+            {
+                if (tempCell.isObstical)
                 {
-                    path2.Clear();
+                    path2 = null;
                     break;
                 }
-                path2.Enqueue(cell);
-                tempWalkerPoint = grid.checkYLocation(tempWalkerPoint - 1);
+                path2.Enqueue(tempCell);
+                if (axis == 'Y')
+                {
+                    tempCell = grid.GetCell(walkerPoint.X, tempCell.Coordinates.Y - 1);
+                }
+                else
+                {
+                    tempCell = grid.GetCell(tempCell.Coordinates.X - 1, walkerPoint.Y);
+                }
             }
 
-            if (path1.Any() || path2.Any())
+            if (tempCell.IsEndPoint)
             {
-                LineOfSitePath = path1.Count() < path2.Count() ? path1 : path2;
+                path2.Enqueue(tempCell);
             }
 
-            return true;
+            if (path1 != null && path2 != null)
+            {
+                LineOfSitePath = path1.Count < path2.Count ? path1 : path2;
+            }
+            else if (path2 != null)
+            {
+                LineOfSitePath = path2;
+            }
+            else if (path1 != null)
+            {
+                LineOfSitePath = path1;
+            }
+
         }
 
 
         private void Move()
         {
+            //Check if the walker is on the same axis as the end point.
+            //if it is on the same axis check if it is not blocked by an obstical (it can see it) and if it isn't, run straight to it.
             if ((walker.Coordinates.X == EndPoint.ColumnIndex || walker.Coordinates.Y == EndPoint.RowIndex) && !FoundThing && !LineOfSitePath.Any())
             {
                 bool isBlockedByObstical = false;
-                var loopStartPoint = new Point();
-                var loopEndPoint = new Point();
+                var loopStartPoint = new Point
+                {
+                    X = walker.Coordinates.X,
+                    Y = walker.Coordinates.Y
+                };
+
+                var loopEndPoint = new Point
+                {
+                    X = EndPoint.RowIndex,
+                    Y = EndPoint.ColumnIndex
+                };
 
                 if (walker.Coordinates.X == EndPoint.ColumnIndex)
                 {
+                    CheckIfPathIsBlockedByObstical(loopStartPoint, loopEndPoint, 'Y');
 
-                    loopStartPoint = new Point
-                    {
-                        X = walker.Coordinates.X,
-                        Y = walker.Coordinates.Y
-                    };
-
-                    loopEndPoint = new Point
-                    {
-                        X = EndPoint.RowIndex,
-                        Y = EndPoint.ColumnIndex
-                    };
-
-                    CheckIfPathIsBlockedByObstical(loopStartPoint, loopEndPoint);
-
-                    //if (walker.Coordinates.Y < EndPoint.RowIndex)
-                    //{
-                    //    loopStartPoint = walker.Coordinates.Y;
-                    //    loopEndPoint = EndPoint.RowIndex + 1;
-
-                    //    for (int i = loopStartPoint; i < loopEndPoint ; i++)
-                    //    {
-                    //        var cell = grid.GetCell(walker.Coordinates.X, i);
-                    //        if (cell.isObstical)
-                    //        {
-                    //            isBlockedByObstical = true;
-                    //            LineOfSitePath.Clear();
-                    //            break;
-                    //        }
-                    //        else
-                    //        {
-                    //            LineOfSitePath.Enqueue(cell);
-                    //        }
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    loopStartPoint = EndPoint.RowIndex;
-                    //    loopEndPoint = walker.Coordinates.Y;
-
-                    //    for (int i = loopStartPoint; i > loopEndPoint; i--)
-                    //    {
-                    //        var cell = grid.GetCell(walker.Coordinates.X, i);
-                    //        if (cell.isObstical)
-                    //        {
-                    //            isBlockedByObstical = true;
-                    //            break;
-                    //        }
-                    //    }
-                    //}
                 }
-                //else if (walker.Coordinates.Y == EndPoint.RowIndex)
-                //{
-                //    loopStartPoint = walker.Coordinates.X;
-                //    loopEndPoint = EndPoint.ColumnIndex + 1;
-
-                //    //CheckIfPathIsBlockedByObstical(loopStartPoint, loopEndPoint);
-
-                //}
+                else if (walker.Coordinates.Y == EndPoint.RowIndex)
+                {
+                    CheckIfPathIsBlockedByObstical(loopStartPoint, loopEndPoint, 'X');
+                }
 
                 if (!isBlockedByObstical)
                 {
